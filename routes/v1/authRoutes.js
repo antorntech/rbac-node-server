@@ -5,6 +5,7 @@ const {
   loginUser,
   getMe,
   createUser,
+  deleteUser,
 } = require("../../controllers/authController");
 const { protect, authorize } = require("../../middleware/authMiddleware");
 
@@ -22,5 +23,8 @@ router.post(
   authorize("superadmin", "admin"),
   createUser
 );
+
+// ডিলিট রাউট (অবশ্যই protect থাকতে হবে কারণ আমরা req.user ব্যবহার করছি)
+router.delete("/delete_user/:id", protect, deleteUser);
 
 module.exports = router;

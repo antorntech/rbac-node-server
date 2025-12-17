@@ -77,3 +77,37 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
+
+// ৪. ইউজার ডিলিট করা (শুধুমাত্র Superadmin)
+exports.deleteUser = async (req, res) => {
+  try {
+    const requesterRole = req.user.role; // যিনি রিকোয়েস্ট করছেন
+    const userIdToDelete = req.params.id; // যাকে ডিলিট করা হবে (URL থেকে আসবে)
+
+    // ১. রোল চেক: শুধুমাত্র Superadmin পারবে
+    if (requesterRole !== "superadmin") {
+      return res.status(403).json({
+        message: "Access Denied: Only Superadmin can delete users.",
+      });
+    }
+
+    // ২. যাকে ডিলিট করবেন তাকে খোঁজা
+    const user = await User.findById(userIdToDelete);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // (অপশনাল) প্রোটেকশন: সুপার এডমিন যেন নিজেকে ডিলিট না করে ফেলে
+    if (user._id.toString() === req.user.id) {
+      return res.status(400).json({ message: "You cannot delete yourself!" });
+    }
+
+    // ৩. ডিলিট করা
+    await User.findByIdAndDelete(userIdToDelete);
+
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
